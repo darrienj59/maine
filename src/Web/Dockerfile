@@ -5,6 +5,7 @@ WORKDIR /app
 # Copy the solution file and all project files
 COPY *.sln . 
 COPY src/Web/*.csproj ./src/Web/
+COPY src/PublicApi/*.csproj ./src/PublicApi/  # Ensure PublicApi.csproj is copied
 
 # Copy the entire source code to the container
 COPY . .
