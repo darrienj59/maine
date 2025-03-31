@@ -1,27 +1,29 @@
-# RUN ALL CONTAINERS FROM ROOT (folder with .sln file):
-# docker-compose build
-# docker-compose up
-#
-# RUN JUST THIS CONTAINER FROM ROOT (folder with .sln file):
-# docker build --pull -t web -f src/Web/Dockerfile .
-#
-# RUN COMMAND
-#  docker run --name eshopweb --rm -it -p 5106:5106 web
+# Build Stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-COPY *.sln .
+# Copy the solution file and all project files
+COPY *.sln . 
+COPY src/Web/*.csproj ./src/Web/
+
+# Copy the entire source code to the container
 COPY . .
+
+# Set the working directory to the Web project folder
 WORKDIR /app/src/Web
+
+# Restore dependencies
 RUN dotnet restore
 
-RUN dotnet publish -c Release -o out
+# Publish the application in Release mode
+RUN dotnet publish -c Release -o /app/out
 
+# Runtime Stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
-COPY --from=build /app/src/Web/out ./
 
-# Optional: Set this here if not setting it from docker-compose.yml
-# ENV ASPNETCORE_ENVIRONMENT Development
+# Copy the output from the build stage
+COPY --from=build /app/out ./
 
+# Set entrypoint for the container to run the Web.dll
 ENTRYPOINT ["dotnet", "Web.dll"]
